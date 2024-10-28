@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Special Dino Game for You</title>
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f0f8ff;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        overflow: hidden;
+    }
+    .game-container {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        height: 60vh;
+        background: linear-gradient(to bottom, #87CEEB, #f0f8ff);
+        border: 2px solid #333;
+        overflow: hidden;
+        border-radius: 10px;
+    }
+    .ground {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 40px;
+        background-color: #8B4513;
+    }
+    .dino {
+        position: absolute;
+        bottom: 40px;
+        left: 10%;
+        width: 50px;
+        height: 50px;
+        background-color: #FF69B4;
+        border-radius: 10%;
+    }
+    .cactus {
+        position: absolute;
+        bottom: 40px;
+        right: -30px;
+        width: 30px;
+        height: 50px;
+        background-color: #006400;
+        border-radius: 10%;
+    }
+    #score {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 18px;
+        color: #ff1493;
+    }
+    #surprise {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        background-color: #ffe4e1;
+        padding: 20px;
+        border-radius: 10px;
+        border: 2px solid #ff69b4;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        z-index: 100;
+        display: none;
+    }
+    .popup-image {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 10px;
+    }
+    .hearts {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+    }
+    .heart {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background-color: #ff69b4;
+        opacity: 0.7;
+        clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        animation: float 4s infinite ease-in-out;
+    }
+    @keyframes float {
+        0% {
+            transform: translateY(0) scale(0.5);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(-100vh) scale(1.5);
+            opacity: 0;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="game-container">
+    <div id="score">Score: 0</div>
+    <div class="dino" id="dino"></div>
+    <div class="cactus" id="cactus"></div>
+    <div class="ground"></div>
+    <div class="hearts" id="hearts"></div>
+</div>
+
+<div id="surprise">
+    <h2>Happy Birthday, My Love!</h2>
+    <img src="your-photo.jpg" alt="Happy Moment" class="popup-image">
+    <p>May your day be filled with joy, love, and endless happiness! Thank you for being in my life ❤️</p>
+    <button onclick="restartGame()">Play Again</button>
+</div>
+
+<script>
+    const dino = document.getElementById('dino');
+    const cactus = document.getElementById('cactus');
+    const scoreDisplay = document.getElementById('score');
+    const surprise = document.getElementById('surprise');
+    const heartsContainer = document.getElementById('hearts');
+
+    let isJumping = false;
+    let isGameOver = false;
+    let score = 0;
+
+    function jump() {
+        if (isJumping) return;
+        isJumping = true;
+        let jumpCount = 0;
+
+        const jumpInterval = setInterval(() => {
+            if (jumpCount < 15) {
+                dino.style.bottom = `${40 + jumpCount * 4}px`;
+            } else if (jumpCount < 30) {
+                dino.style.bottom = `${100 - (jumpCount - 15) * 4}px`;
+            } else {
+                clearInterval(jumpInterval);
+                isJumping = false;
+            }
+            jumpCount++;
+        }, 20);
+    }
+
+    function moveCactus() {
+        let cactusPosition = 600;
+
+        const cactusInterval = setInterval(() => {
+            if (isGameOver) {
+                clearInterval(cactusInterval);
+                cactus.style.display = 'none';
+                return;
+            }
+
+            cactusPosition -= 8;
+            cactus.style.right = cactusPosition + 'px';
+
+            if (cactusPosition > 10 && cactusPosition < 70 && parseInt(dino.style.bottom) < 50) {
+                gameOver();
+            }
+
+            if (cactusPosition < -30) {
+                cactusPosition = 600;
+                score += 10;
+                scoreDisplay.textContent = `Score: ${score}`;
+                createHeart();
+            }
+        }, 20);
+    }
+
+    function createHeart() {
+        const heart = document.createElement('div');
+        heart.classList.add('heart');
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.animationDuration = Math.random() * 2 + 3 + 's';
+        heartsContainer.appendChild(heart);
+
+        setTimeout(() => {
+            heart.remove();
+        }, 4000);
+    }
+
+    function gameOver() {
+        isGameOver = true;
+        surprise.style.display = 'block';
+    }
+
+    function restartGame() {
+        isGameOver = false;
+        score = 0;
+        scoreDisplay.textContent = `Score: ${score}`;
+        surprise.style.display = 'none';
+        cactus.style.display = 'block';
+        moveCactus();
+    }
+
+    moveCactus();
+    document.addEventListener('keydown', () => {
+        if (!isGameOver) jump();
+    });
+
+    document.addEventListener('touchstart', () => {
+        if (!isGameOver) jump();
+    });
+</script>
+
+</body>
+</html>
